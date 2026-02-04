@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zellmani - Hem</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">Zellmani</h1>
+            <ul class="nav-links">
+                <li><a href="#hem">Hem</a></li>
+                <li><a href="#om">Om</a></li>
+                <li><a href="#kontakt">Kontakt</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hem" class="hero">
+            <div class="container">
+                <h2>Välkommen till Zellmani</h2>
+                <p>En modern webbplats byggd med Supabase och Vercel</p>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="om" class="about">
+            <div class="container">
+                <h2>Om Zellmani</h2>
+                <p>Denna webbplats är ett projekt för att lära sig moderna webbutvecklingsteknik.</p>
+                <div id="leads-list" class="leads-list">
+                    <p>Läser in data från Supabase...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="kontakt" class="contact">
+            <div class="container">
+                <h2>Kontakt</h2>
+                <form id="contact-form" class="contact-form">
+                    <input type="text" id="name" placeholder="Namn" required>
+                    <input type="email" id="email" placeholder="Email" required>
+                    <textarea id="message" placeholder="Meddelande" rows="5" required></textarea>
+                    <button type="submit" class="btn">Skicka</button>
+                </form>
+                <p id="form-status"></p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Zellmani. Alla rättigheter förbehållna.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
