@@ -6,6 +6,143 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// OpenAI Integration
+const OPENAI_API_KEY = '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';
+const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwDBzjKdl1fdmGVYHKwQuFZln5lFbgQb_I9Qlh84mG9IlUfqdfE5HPZVfJ7Zcei9RnssQ/usercallback';
+
+// Quick Valuation Variables
+let selectedPropertyType = null;
+
+// Load leads on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadLeads();
+    setupQuickValuation();
+});
+
+// Setup quick valuation form
+function setupQuickValuation() {
+    const villaBtn = document.getElementById('villa-btn');
+    const brfBtn = document.getElementById('brf-btn');
+    const getValuationBtn = document.getElementById('get-valuation-btn');
+
+    if (villaBtn) {
+        villaBtn.addEventListener('click', function() {
+            selectedPropertyType = 'villa';
+            villaBtn.classList.add('active');
+            brfBtn.classList.remove('active');
+            document.getElementById('brf-details').style.display = 'none';
+        });
+    }
+
+    if (brfBtn) {
+        brfBtn.addEventListener('click', function() {
+            selectedPropertyType = 'brf';
+            brfBtn.classList.add('active');
+            villaBtn.classList.remove('active');
+            document.getElementById('brf-details').style.display = 'grid';
+        });
+    }
+
+    if (getValuationBtn) {
+        getValuationBtn.addEventListener('click', getValuation);
+    }
+}
+
+// Get valuation from OpenAI
+async function getValuation() {
+    const address = document.getElementById('quick-address').value.trim();
+    const getBtn = document.getElementById('get-valuation-btn');
+    
+    if (!address) {
+        alert('Vänligen ange en adress');
+        return;
+    }
+    
+    if (!selectedPropertyType) {
+        alert('Vänligen välj Villa eller Bostadsrätt');
+        return;
+    }
+
+    // Show loading
+    getBtn.textContent = '⏳ Söker värdering...';
+    getBtn.disabled = true;
+
+    try {
+        let prompt = `Du är en erfaren fastighetsvärderare i Sverige. Ge en realistisk marknadsvärdering för denna bostad baserat på aktuella marknadsdata:
+
+Adress: ${address}
+Bostadstyp: ${selectedPropertyType === 'villa' ? 'Villa' : 'Bostadsrätt'}`;
+
+        if (selectedPropertyType === 'brf') {
+            const kvm = document.getElementById('brf-kvm').value;
+            const floor = document.getElementById('brf-floor').value;
+            const rooms = document.getElementById('brf-rooms').value;
+            if (kvm) prompt += `\nArea: ${kvm} kvm`;
+            if (floor) prompt += `\nVåning: ${floor}`;
+            if (rooms) prompt += `\nRum: ${rooms}`;
+        }
+
+        prompt += `\n\nSvar MED ENDAST ett nummer utan text, valuta eller punkter (t.ex: 2500000)`;
+
+        // Call OpenAI API
+        const response = await fetch(OPENAI_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }],
+                max_tokens: 50,
+                temperature: 0.7
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        let valuationStr = data.choices[0].message.content.trim();
+        let valuation = parseInt(valuationStr.replace(/[^0-9]/g, ''));
+
+        if (isNaN(valuation) || valuation < 100000) {
+            valuation = 2500000; // Fallback
+        }
+
+        // Format and display
+        const formatted = new Intl.NumberFormat('sv-SE', { 
+            style: 'currency', 
+            currency: 'SEK',
+            minimumFractionDigits: 0 
+        }).format(valuation);
+
+        displayValuation(address, formatted);
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Fel vid värdering: ' + error.message);
+    } finally {
+        getBtn.textContent = 'Få Värdering →';
+        getBtn.disabled = false;
+    }
+}
+
+function displayValuation(address, formatted) {
+    document.getElementById('result-value').textContent = formatted;
+    document.getElementById('result-address').textContent = address;
+    document.getElementById('valuation-result').style.display = 'block';
+    
+    // Scroll to result
+    document.getElementById('valuation-result').scrollIntoView({ behavior: 'smooth' });
+}
+
 // Load leads from Supabase
 async function loadLeads() {
     try {
@@ -17,171 +154,92 @@ async function loadLeads() {
         if (error) throw error;
 
         const leadsList = document.getElementById('leads-list');
-        
+        if (!leadsList) return;
+
         if (!data || data.length === 0) {
-            leadsList.innerHTML = '<p>Inga leads än. Fyll i kontaktformuläret!</p>';
             return;
         }
 
-        leadsList.innerHTML = data.map(lead => `
-            <div class="lead-card">
-                <h3>${lead.name}</h3>
-                <p><strong>Email:</strong> ${lead.email}</p>
-                <p><strong>Kommun:</strong> ${lead.kommun || 'Ej angiven'}</p>
-                <p><strong>Meddelande:</strong> ${lead.meddelande || 'Inget meddelande'}</p>
-                <p><small>Skapat: ${new Date(lead.created_at).toLocaleDateString('sv-SE')}</small></p>
+        // Show first 3 as testimonials
+        leadsList.innerHTML = data.slice(0, 3).map(lead => `
+            <div class="testimonial">
+                <p>"${lead.meddelande.substring(0, 100)}..." — ${lead.name}</p>
             </div>
         `).join('');
+
     } catch (error) {
         console.error('Error loading leads:', error);
-        document.getElementById('leads-list').innerHTML = '<p>Kunde inte ladda data. Försök igen senare.</p>';
     }
 }
 
-// Google Sheets Integration
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwDBzjKdl1fdmGVYHKwQuFZln5lFbgQb_I9Qlh84mG9IlUfqdfE5HPZVfJ7Zcei9RnssQ/usercallback';
+// Handle full contact form submission (for those who want broker contact)
+if (document.getElementById('contact-form')) {
+    document.getElementById('contact-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-// Generate mock valuation based on property data
-function generateValuation(address, propertyType, condition) {
-    const baseValues = {
-        'villa': 4500000,
-        'lägenhet': 2500000,
-        'radhus': 3200000,
-        'bostadsrätt': 2800000,
-        'tomt': 1500000,
-        'övrig': 2000000
-    };
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const address = document.getElementById('address').value;
+        const kommune = document.getElementById('kommune').value;
+        const propertyType = document.getElementById('property-type').value;
+        const propertyCondition = document.getElementById('property-condition').value;
+        const message = document.getElementById('message').value;
+        const mäklarKontakt = document.getElementById('mäklarkontakt').checked;
 
-    const conditionMultipliers = {
-        'mycket-bra': 1.15,
-        'bra': 1.05,
-        'normalt': 1.0,
-        'behov-renovering': 0.85
-    };
+        try {
+            // Save to Supabase
+            const { data, error } = await supabaseClient
+                .from('leads')
+                .insert([
+                    {
+                        name: name || 'Anonym',
+                        email: email || 'inte-angiven@example.com',
+                        kommun: kommune,
+                        meddelande: `Adress: ${address}\nBostadstyp: ${propertyType}\nSkick: ${propertyCondition}\nMäklarkontakt: ${mäklarKontakt ? 'Ja' : 'Nej'}\n\n${message}`
+                    }
+                ])
+                .select();
 
-    let baseValue = baseValues[propertyType] || 2500000;
-    let multiplier = conditionMultipliers[condition] || 1.0;
-    let value = Math.round(baseValue * multiplier / 10000) * 10000;
-    
-    // Add some randomness (±5%)
-    let variance = Math.random() * 0.1 - 0.05;
-    value = Math.round(value * (1 + variance) / 10000) * 10000;
-    
-    return value;
+            if (error) throw error;
+
+            // Send to Google Sheets
+            try {
+                await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: name || 'Anonym',
+                        email: email || 'inte-angiven@example.com',
+                        address: address,
+                        kommune: kommune,
+                        propertyType: propertyType,
+                        propertyCondition: propertyCondition,
+                        message: message,
+                        mäklarKontakt: mäklarKontakt
+                    })
+                });
+            } catch (e) {
+                console.log('Google Sheets update skipped');
+            }
+
+            // Show success message
+            const statusEl = document.getElementById('form-status');
+            statusEl.innerHTML = '<strong>✓ Tack för din anmälan!</strong><p>Vi kontaktar dig snart.</p>';
+            statusEl.className = 'form-status success';
+
+            // Reset form
+            document.getElementById('contact-form').reset();
+
+            // Reload leads
+            setTimeout(() => {
+                loadLeads();
+                statusEl.textContent = '';
+                statusEl.className = 'form-status';
+            }, 3000);
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            const statusEl = document.getElementById('form-status');
+            statusEl.textContent = '✗ Ett fel uppstod. Försök igen senare.';
+            statusEl.className = 'form-status error';
+        }
+    });
 }
-
-// Format currency
-function formatCurrency(value) {
-    return new Intl.NumberFormat('sv-SE', { 
-        style: 'currency', 
-        currency: 'SEK',
-        minimumFractionDigits: 0 
-    }).format(value);
-}
-
-// Handle Contact Form Submission
-document.getElementById('contact-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const address = document.getElementById('address').value;
-    const kommune = document.getElementById('kommune').value;
-    const propertyType = document.getElementById('property-type').value;
-    const propertyCondition = document.getElementById('property-condition').value;
-    const message = document.getElementById('message').value;
-    const mäklarKontakt = document.getElementById('mäklarkontakt').checked;
-
-    try {
-        // Generate immediate valuation
-        const valuationAmount = generateValuation(address, propertyType, propertyCondition);
-        const valuationFormatted = formatCurrency(valuationAmount);
-
-        // Prepare data for Supabase and Google Sheets
-        const leadData = {
-            name: name || 'Anonym',
-            email: email || 'inte-angiven@example.com',
-            address: address,
-            kommune: kommune,
-            propertyType: propertyType,
-            propertyCondition: propertyCondition,
-            message: message,
-            mäklarKontakt: mäklarKontakt,
-            valuation: valuationAmount,
-            timestamp: new Date().toISOString()
-        };
-
-        // Save to Supabase
-        const { data, error } = await supabaseClient
-            .from('leads')
-            .insert([
-                {
-                    name: leadData.name,
-                    email: leadData.email,
-                    kommun: kommune,
-                    meddelande: `Adress: ${address}\nBostadstyp: ${propertyType}\nSkick: ${propertyCondition}\nVärdering: ${valuationFormatted}\nMäklarkontakt: ${mäklarKontakt ? 'Ja' : 'Nej'}\n\n${message}`
-                }
-            ])
-            .select();
-
-        if (error) throw error;
-
-        // Send to Google Sheets
-        await sendToGoogleSheets(leadData);
-
-        // Show success with valuation
-        const statusEl = document.getElementById('form-status');
-        statusEl.innerHTML = `
-            <strong>✓ Din Bostadsvärdering!</strong>
-            <p style="font-size: 2.5rem; color: #667eea; margin: 1rem 0; font-weight: bold;">${valuationFormatted}</p>
-            <p style="font-size: 0.9rem; color: #666;">Baserad på lokal marknadsdata för ${address}</p>
-            ${mäklarKontakt ? '<p style="margin-top: 1rem; color: #27ae60;"><strong>✓ Mäklare i ditt område kontaktar dig snart!</strong></p>' : ''}
-        `;
-        statusEl.className = 'form-status success';
-
-        // Reset form
-        document.getElementById('contact-form').reset();
-
-        // Reload testimonials/leads
-        setTimeout(() => {
-            loadLeads();
-            statusEl.textContent = '';
-            statusEl.className = 'form-status';
-        }, 5000);
-    } catch (error) {
-        console.error('Error submitting form:', error);
-        const statusEl = document.getElementById('form-status');
-        statusEl.textContent = '✗ Ett fel uppstod. Försök igen senare.';
-        statusEl.className = 'form-status error';
-    }
-});
-
-// Send to Google Sheets
-async function sendToGoogleSheets(data) {
-    try {
-        const response = await fetch(GOOGLE_SHEETS_URL, {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-        const result = await response.json();
-        console.log('Google Sheets response:', result);
-        return result;
-    } catch (error) {
-        console.error('Google Sheets error:', error);
-        // Continue even if Google Sheets fails - Supabase already saved the data
-    }
-}
-
-// Load Supabase client library and then load leads
-function loadSupabaseLibrary() {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js';
-    script.onload = () => {
-        console.log('Supabase library loaded');
-        loadLeads();
-    };
-    document.head.appendChild(script);
-}
-
-// Load on page load
-window.addEventListener('load', loadSupabaseLibrary);

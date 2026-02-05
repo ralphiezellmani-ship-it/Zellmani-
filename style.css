@@ -148,6 +148,108 @@ section h2 {
     line-height: 1.6;
 }
 
+/* Quick Valuation Form */
+.quick-valuation-form {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 12px;
+    max-width: 600px;
+    margin: 3rem auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.quick-valuation-form input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.quick-valuation-form input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+}
+
+.property-type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.property-btn {
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.property-btn:hover {
+    border-color: #667eea;
+    background: #f5f7ff;
+}
+
+.property-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.brf-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.brf-details .form-group {
+    margin-bottom: 0;
+}
+
+.brf-details input {
+    width: 100%;
+}
+
+#get-valuation-btn {
+    width: 100%;
+    padding: 1rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#get-valuation-btn:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+}
+
+.valuation-result {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 600px;
+    margin: 3rem auto;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
 .cta-button {
     display: inline-block;
     background: white;

@@ -22,26 +22,42 @@
     </nav>
 
     <main>
-        <!-- Hero Section -->
+        <!-- Hero Section with Quick Valuation -->
         <section id="hem" class="hero">
             <div class="container">
                 <div class="hero-content">
                     <h2>Vad är din bostad värd?</h2>
-                    <p>Få en realistisk och lokal bostadsvärdering på mindre än 30 sekunder — helt gratis och utan bindning</p>
-                    <a href="#kontakt" class="cta-button">Börja Värdering →</a>
-                </div>
-                <div class="hero-stats">
-                    <div class="stat">
-                        <h3>50,000+</h3>
-                        <p>Värderingar Utförda</p>
+                    <p>Få omedelbar värdering powered by AI</p>
+                    
+                    <div class="quick-valuation-form">
+                        <div class="form-group">
+                            <input type="text" id="quick-address" placeholder="Skriv in din adress..." required>
+                        </div>
+                        
+                        <div class="property-type-selector">
+                            <button class="property-btn" data-type="villa" id="villa-btn">🏠 Villa</button>
+                            <button class="property-btn" data-type="brf" id="brf-btn">🏢 Bostadsrätt</button>
+                        </div>
+
+                        <div id="brf-details" class="brf-details" style="display: none;">
+                            <div class="form-group">
+                                <input type="number" id="brf-kvm" placeholder="Antal kvm..." min="10" max="500">
+                            </div>
+                            <div class="form-group">
+                                <input type="number" id="brf-floor" placeholder="Våning..." min="0" max="20">
+                            </div>
+                            <div class="form-group">
+                                <input type="number" id="brf-rooms" placeholder="Antal rum..." min="1" max="10">
+                            </div>
+                        </div>
+
+                        <button class="cta-button" id="get-valuation-btn">Få Värdering →</button>
                     </div>
-                    <div class="stat">
-                        <h3>15+</h3>
-                        <p>År av Expertis</p>
-                    </div>
-                    <div class="stat">
-                        <h3>98%</h3>
-                        <p>Nöjda Användare</p>
+
+                    <div id="valuation-result" class="valuation-result" style="display: none;">
+                        <h3>Din bostadsvärdering</h3>
+                        <p id="result-value" style="font-size: 3rem; color: #667eea; font-weight: bold; margin: 1rem 0;"></p>
+                        <p id="result-address" style="color: #666; margin-bottom: 1.5rem;"></p>
                     </div>
                 </div>
             </div>
