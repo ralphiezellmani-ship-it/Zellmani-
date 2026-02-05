@@ -48,7 +48,7 @@ function setupQuickValuation() {
     }
 }
 
-// Generate mock valuation based on property data
+// Generate consistent valuation based on property data
 function generateMockValuation(address, propertyType, kvm, floor, rooms) {
     const baseValues = {
         'villa': 4500000,
@@ -72,9 +72,8 @@ function generateMockValuation(address, propertyType, kvm, floor, rooms) {
         }
     }
     
-    // Add randomness (±8%)
-    let variance = Math.random() * 0.16 - 0.08;
-    baseValue = Math.round(baseValue * (1 + variance) / 50000) * 50000;
+    // Round to nearest 50000 for clean display (NO randomness)
+    baseValue = Math.round(baseValue / 50000) * 50000;
     
     return baseValue;
 }
