@@ -20,13 +20,13 @@ body {
 
 /* Navbar */
 .navbar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #1a2a3a 100%);
     color: white;
-    padding: 1.2rem 0;
+    padding: 1rem 0;
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
 .navbar-content {
@@ -105,10 +105,10 @@ section h2 {
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #1a2a3a 100%);
     color: white;
     text-align: center;
-    padding: 6rem 0;
+    padding: 7rem 0;
     position: relative;
     overflow: hidden;
 }
@@ -116,12 +116,11 @@ section h2 {
 .hero:before {
     content: '';
     position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs><pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="1200" height="600" fill="url(%23dots)"/></svg>');
     pointer-events: none;
 }
 
@@ -133,18 +132,20 @@ section h2 {
 .hero h2 {
     color: white;
     font-size: 3.5rem;
-    margin-bottom: 1rem;
-    font-weight: 800;
+    margin-bottom: 1.2rem;
+    font-weight: 700;
     line-height: 1.2;
+    letter-spacing: -0.5px;
 }
 
 .hero p {
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 1.3rem;
-    margin-bottom: 2rem;
-    max-width: 600px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.2rem;
+    margin-bottom: 2.5rem;
+    max-width: 650px;
     margin-left: auto;
     margin-right: auto;
+    line-height: 1.6;
 }
 
 .cta-button {
@@ -281,15 +282,16 @@ section h2 {
 
 /* CTA Section */
 .cta-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #1a2a3a 100%);
     color: white;
-    padding: 4rem 0;
+    padding: 5rem 0;
     text-align: center;
 }
 
 .cta-section h2 {
     color: white;
     margin-bottom: 1rem;
+    font-weight: 700;
 }
 
 .cta-section p {
@@ -345,7 +347,8 @@ section h2 {
 }
 
 .contact-form input,
-.contact-form textarea {
+.contact-form textarea,
+.contact-form select {
     padding: 1rem;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
@@ -353,14 +356,31 @@ section h2 {
     font-size: 1rem;
     transition: all 0.3s ease;
     background: white;
+    width: 100%;
 }
 
 .contact-form input:focus,
-.contact-form textarea:focus {
+.contact-form textarea:focus,
+.contact-form select:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+    border-color: #2c3e50;
+    box-shadow: 0 0 10px rgba(44, 62, 80, 0.2);
     background: white;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    color: #333;
+    cursor: pointer;
+    margin: 0.5rem 0;
+}
+
+.checkbox-label input {
+    width: auto;
+    margin-right: 0.8rem;
+    cursor: pointer;
 }
 
 .btn {

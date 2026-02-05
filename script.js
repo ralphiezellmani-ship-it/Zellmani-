@@ -38,34 +38,46 @@ async function loadLeads() {
     }
 }
 
+// Google Sheets Integration
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/d/YOUR_GOOGLE_APPS_SCRIPT_ID/usercallback'; // Replace with your Google Apps Script deployment URL
+
 // Handle Contact Form Submission
 document.getElementById('contact-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
-    const kommun = document.getElementById('kommun').value;
+    const address = document.getElementById('address').value;
+    const kommune = document.getElementById('kommune').value;
+    const propertyType = document.getElementById('property-type').value;
+    const propertyCondition = document.getElementById('property-condition').value;
     const message = document.getElementById('message').value;
+    const mäklarKontakt = document.getElementById('mäklarkontakt').checked;
 
     try {
-        // Insert into Supabase
+        // Save to Supabase
         const { data, error } = await supabaseClient
             .from('leads')
             .insert([
                 {
                     name: name,
                     email: email,
-                    kommun: kommun,
-                    meddelande: message
+                    kommun: kommune,
+                    meddelande: `Adress: ${address}\nBostadstyp: ${propertyType}\nSkick: ${propertyCondition}\nMäklarkontakt: ${mäklarKontakt ? 'Ja' : 'Nej'}\n\n${message}`
                 }
             ])
             .select();
 
         if (error) throw error;
 
+        // Save to Google Sheets (optional - implement Google Apps Script)
+        // await sendToGoogleSheets({
+        //     name, email, address, kommune, propertyType, propertyCondition, message, mäklarKontakt
+        // });
+
         // Show success message
         const statusEl = document.getElementById('form-status');
-        statusEl.innerHTML = '<strong>✓ Tack för din anmälan!</strong><p>Vi kontaktar dig snart.</p>';
+        statusEl.innerHTML = '<strong>✓ Värdering genomförd!</strong><p>Vi kontaktar dig snart med resultat och mäklare i ditt område.</p>';
         statusEl.className = 'form-status success';
 
         // Reset form
@@ -76,7 +88,7 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
             loadLeads();
             statusEl.textContent = '';
             statusEl.className = 'form-status';
-        }, 3000);
+        }, 4000);
     } catch (error) {
         console.error('Error submitting form:', error);
         const statusEl = document.getElementById('form-status');
@@ -84,6 +96,19 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
         statusEl.className = 'form-status error';
     }
 });
+
+// Optional: Send to Google Sheets
+// async function sendToGoogleSheets(data) {
+//     try {
+//         const response = await fetch(GOOGLE_SHEETS_URL, {
+//             method: 'POST',
+//             body: JSON.stringify(data)
+//         });
+//         return response.json();
+//     } catch (error) {
+//         console.log('Google Sheets integration pending - save works to Supabase');
+//     }
+// }
 
 // Load Supabase client library and then load leads
 function loadSupabaseLibrary() {
