@@ -6,9 +6,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// OpenAI Integration
-const OPENAI_API_KEY = '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';
-const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
+// API Integration (backend handles OpenAI API key securely)
+const VALUATION_API = '/api/valuation';
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwDBzjKdl1fdmGVYHKwQuFZln5lFbgQb_I9Qlh84mG9IlUfqdfE5HPZVfJ7Zcei9RnssQ/usercallback';
 
 // Quick Valuation Variables
@@ -85,21 +84,14 @@ Bostadstyp: ${selectedPropertyType === 'villa' ? 'Villa' : 'Bostadsrätt'}`;
 
         prompt += `\n\nSvar MED ENDAST ett nummer utan text, valuta eller punkter (t.ex: 2500000)`;
 
-        // Call OpenAI API
-        const response = await fetch(OPENAI_URL, {
+        // Call backend API (which securely calls OpenAI)
+        const response = await fetch(VALUATION_API, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [{
-                    role: 'user',
-                    content: prompt
-                }],
-                max_tokens: 50,
-                temperature: 0.7
+                prompt: prompt
             })
         });
 
