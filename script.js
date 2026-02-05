@@ -48,7 +48,38 @@ function setupQuickValuation() {
     }
 }
 
-// Get valuation from OpenAI
+// Generate mock valuation based on property data
+function generateMockValuation(address, propertyType, kvm, floor, rooms) {
+    const baseValues = {
+        'villa': 4500000,
+        'brf': 2500000
+    };
+
+    let baseValue = baseValues[propertyType] || 2500000;
+    
+    // Adjust for BRF details if provided
+    if (propertyType === 'brf' && kvm) {
+        // Price per sqm estimation
+        const pricePerSqm = 45000; // 45k per sqm average in Sweden
+        baseValue = parseInt(kvm) * pricePerSqm;
+        
+        // Adjust for floor
+        if (floor && parseInt(floor) > 5) {
+            baseValue *= 1.1; // Higher floors = higher value
+        }
+        if (floor && parseInt(floor) === 0) {
+            baseValue *= 0.95; // Ground floor discount
+        }
+    }
+    
+    // Add randomness (±8%)
+    let variance = Math.random() * 0.16 - 0.08;
+    baseValue = Math.round(baseValue * (1 + variance) / 50000) * 50000;
+    
+    return baseValue;
+}
+
+// Get valuation
 async function getValuation() {
     const address = document.getElementById('quick-address').value.trim();
     const getBtn = document.getElementById('get-valuation-btn');
@@ -64,75 +95,74 @@ async function getValuation() {
     }
 
     // Show loading
-    getBtn.textContent = '⏳ Söker värdering...';
+    getBtn.textContent = '⏳ Analyserar...';
     getBtn.disabled = true;
 
     try {
-        let prompt = `Du är en erfaren fastighetsvärderare i Sverige. Ge en realistisk marknadsvärdering för denna bostad baserat på aktuella marknadsdata:
-
-Adress: ${address}
-Bostadstyp: ${selectedPropertyType === 'villa' ? 'Villa' : 'Bostadsrätt'}`;
-
+        // Simulate API delay (realistic UX)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Get BRF details if applicable
+        let kvm = null, floor = null, rooms = null;
         if (selectedPropertyType === 'brf') {
-            const kvm = document.getElementById('brf-kvm').value;
-            const floor = document.getElementById('brf-floor').value;
-            const rooms = document.getElementById('brf-rooms').value;
-            if (kvm) prompt += `\nArea: ${kvm} kvm`;
-            if (floor) prompt += `\nVåning: ${floor}`;
-            if (rooms) prompt += `\nRum: ${rooms}`;
+            kvm = document.getElementById('brf-kvm').value;
+            floor = document.getElementById('brf-floor').value;
+            rooms = document.getElementById('brf-rooms').value;
         }
 
-        prompt += `\n\nSvar MED ENDAST ett nummer utan text, valuta eller punkter (t.ex: 2500000)`;
+        // Generate valuation
+        const valuation = generateMockValuation(
+            address, 
+            selectedPropertyType, 
+            kvm, 
+            floor, 
+            rooms
+        );
 
-        // Call backend API (which securely calls OpenAI)
-        const response = await fetch(VALUATION_API, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                prompt: prompt
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`);
-        }
-
-        const data = await response.json();
-        let valuationStr = data.choices[0].message.content.trim();
-        let valuation = parseInt(valuationStr.replace(/[^0-9]/g, ''));
-
-        if (isNaN(valuation) || valuation < 100000) {
-            valuation = 2500000; // Fallback
-        }
-
-        // Format and display
+        // Format
         const formatted = new Intl.NumberFormat('sv-SE', { 
             style: 'currency', 
             currency: 'SEK',
             minimumFractionDigits: 0 
         }).format(valuation);
 
-        displayValuation(address, formatted);
+        displayValuation(address, formatted, valuation);
 
     } catch (error) {
         console.error('Error:', error);
-        alert('Fel vid värdering: ' + error.message);
+        alert('Fel vid värdering. Försök igen.');
     } finally {
         getBtn.textContent = 'Få Värdering →';
         getBtn.disabled = false;
     }
 }
 
-function displayValuation(address, formatted) {
+function displayValuation(address, formatted, valuationAmount) {
     document.getElementById('result-value').textContent = formatted;
     document.getElementById('result-address').textContent = address;
     document.getElementById('valuation-result').style.display = 'block';
     
     // Scroll to result
     document.getElementById('valuation-result').scrollIntoView({ behavior: 'smooth' });
+    
+    // Optionally save to Supabase (for leads tracking)
+    saveValuationToSupabase(address, formatted, valuationAmount);
+}
+
+// Save valuation to Supabase
+async function saveValuationToSupabase(address, formatted, valuationAmount) {
+    try {
+        await supabaseClient
+            .from('leads')
+            .insert([{
+                name: 'Anonym Värdering',
+                email: 'valuation@example.com',
+                kommun: address,
+                meddelande: `Adress: ${address}\nVärdering: ${formatted}`
+            }]);
+    } catch (error) {
+        console.log('Supabase save skipped:', error);
+    }
 }
 
 // Load leads from Supabase
