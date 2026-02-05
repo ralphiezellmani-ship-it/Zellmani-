@@ -50,6 +50,17 @@ function setupQuickValuation() {
 
 // Generate consistent valuation based on property data
 function generateMockValuation(address, propertyType, kvm, floor, rooms) {
+    // Create deterministic value based on address hash
+    let hash = 0;
+    for (let i = 0; i < address.length; i++) {
+        const char = address.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    // Normalize hash to 0-1 range
+    const normalized = Math.abs(hash % 100) / 100;
+    
     const baseValues = {
         'villa': 4500000,
         'brf': 2500000
@@ -63,16 +74,22 @@ function generateMockValuation(address, propertyType, kvm, floor, rooms) {
         const pricePerSqm = 45000; // 45k per sqm average in Sweden
         baseValue = parseInt(kvm) * pricePerSqm;
         
-        // Adjust for floor
-        if (floor && parseInt(floor) > 5) {
-            baseValue *= 1.1; // Higher floors = higher value
+        // Adjust for floor deterministically
+        if (floor) {
+            const floorNum = parseInt(floor);
+            if (floorNum > 5) {
+                baseValue *= 1.1; // Higher floors = higher value
+            } else if (floorNum === 0) {
+                baseValue *= 0.95; // Ground floor discount
+            }
         }
-        if (floor && parseInt(floor) === 0) {
-            baseValue *= 0.95; // Ground floor discount
-        }
+    } else {
+        // Villa: add variation based on address (±5% max)
+        const variation = (normalized - 0.5) * 0.1; // ±5%
+        baseValue *= (1 + variation);
     }
     
-    // Round to nearest 50000 for clean display (NO randomness)
+    // Round to nearest 50000 for clean display
     baseValue = Math.round(baseValue / 50000) * 50000;
     
     return baseValue;
