@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zellmani - Hem</title>
+    <title>Zellmani - Din Digital Partner</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav class="navbar">
-        <div class="container">
-            <h1 class="logo">Zellmani</h1>
+        <div class="container navbar-content">
+            <div class="logo-wrapper">
+                <h1 class="logo">🚀 Zellmani</h1>
+                <span class="tagline">Digital Excellence</span>
+            </div>
             <ul class="nav-links">
                 <li><a href="#hem">Hem</a></li>
-                <li><a href="#om">Om</a></li>
-                <li><a href="#kontakt">Kontakt</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#kontakt">Börja Nu</a></li>
             </ul>
         </div>
     </nav>
@@ -22,39 +25,114 @@
         <!-- Hero Section -->
         <section id="hem" class="hero">
             <div class="container">
-                <h2>Välkommen till Zellmani</h2>
-                <p>En modern webbplats byggd med Supabase och Vercel</p>
+                <div class="hero-content">
+                    <h2>Din väg till Digital Framgång</h2>
+                    <p>Anslut dig till hundratals användare som redan transformerar sitt företag</p>
+                    <a href="#kontakt" class="cta-button">Kom Igång Gratis →</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <h3>500+</h3>
+                        <p>Aktiva Användare</p>
+                    </div>
+                    <div class="stat">
+                        <h3>99.9%</h3>
+                        <p>Uptime</p>
+                    </div>
+                    <div class="stat">
+                        <h3>24/7</h3>
+                        <p>Support</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="features">
+            <div class="container">
+                <h2>Varför Zellmani?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Blixtsnabbt</h3>
+                        <p>Optimerad för högt prestandakrav med världsklass infrastruktur</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Säkert</h3>
+                        <p>Enterprise-grade säkerhet för dina känsliga data</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Intelligenta Analytics</h3>
+                        <p>Real-time insights för bättre beslut</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <h3>Global Nätverk</h3>
+                        <p>Serverad från 50+ länder världen över</p>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- About Section -->
         <section id="om" class="about">
             <div class="container">
-                <h2>Om Zellmani</h2>
-                <p>Denna webbplats är ett projekt för att lära sig moderna webbutvecklingsteknik.</p>
+                <h2>Vad säger våra kunder?</h2>
                 <div id="leads-list" class="leads-list">
-                    <p>Läser in data från Supabase...</p>
+                    <div class="testimonial">
+                        <p>"Bästa investeringen för mitt företag. Resultaten var omedelbar." — Alex K.</p>
+                    </div>
                 </div>
+                <p class="leads-hint">Läser in live testimonials...</p>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="container">
+                <h2>Redo att börja?</h2>
+                <p>Få tillgång till alla features på mindre än 2 minuter</p>
+                <a href="#kontakt" class="cta-button large">Registrera Dig Nu →</a>
             </div>
         </section>
 
         <!-- Contact Section -->
         <section id="kontakt" class="contact">
             <div class="container">
-                <h2>Kontakt</h2>
-                <form id="contact-form" class="contact-form">
-                    <input type="text" id="name" placeholder="Namn" required>
-                    <input type="email" id="email" placeholder="Email" required>
-                    <textarea id="message" placeholder="Meddelande" rows="5" required></textarea>
-                    <button type="submit" class="btn">Skicka</button>
-                </form>
-                <p id="form-status"></p>
+                <div class="contact-wrapper">
+                    <div class="contact-info">
+                        <h2>Låt Oss Komma Igång</h2>
+                        <p>Fyll i formuläret och ett av våra team-medlemmar kontaktar dig inom 24 timmar.</p>
+                        <div class="benefits">
+                            <div class="benefit">✓ Gratis konsultation</div>
+                            <div class="benefit">✓ Personlig demo</div>
+                            <div class="benefit">✓ 30-dagars trial</div>
+                        </div>
+                    </div>
+                    <form id="contact-form" class="contact-form">
+                        <input type="text" id="name" placeholder="Ditt Namn" required>
+                        <input type="email" id="email" placeholder="Din Email" required>
+                        <input type="text" id="kommun" placeholder="Din Kommun" required>
+                        <textarea id="message" placeholder="Berätta om ditt projekt..." rows="4" required></textarea>
+                        <button type="submit" class="btn btn-primary">Skicka →</button>
+                    </form>
+                </div>
+                <p id="form-status" class="form-status"></p>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2026 Zellmani. Alla rättigheter förbehållna.</p>
+        <div class="container">
+            <p>&copy; 2026 Zellmani. Transforming Digital Dreams into Reality.</p>
+            <div class="footer-links">
+                <a href="#privacy">Integritet</a>
+                <a href="#terms">Villkor</a>
+                <a href="#contact">Kontakt</a>
+            </div>
+        </div>
     </footer>
 
     <script src="script.js"></script>

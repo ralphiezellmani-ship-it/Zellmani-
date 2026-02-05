@@ -44,6 +44,7 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
 
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
+    const kommun = document.getElementById('kommun').value;
     const message = document.getElementById('message').value;
 
     try {
@@ -54,8 +55,8 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
                 {
                     name: name,
                     email: email,
-                    meddelande: message,
-                    kommun: 'Inte angiven' // You can modify this later
+                    kommun: kommun,
+                    meddelande: message
                 }
             ])
             .select();
@@ -64,8 +65,8 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
 
         // Show success message
         const statusEl = document.getElementById('form-status');
-        statusEl.textContent = '✓ Meddelandet skickades! Tack!';
-        statusEl.className = 'success';
+        statusEl.innerHTML = '<strong>✓ Tack för din anmälan!</strong><p>Vi kontaktar dig snart.</p>';
+        statusEl.className = 'form-status success';
 
         // Reset form
         document.getElementById('contact-form').reset();
@@ -74,12 +75,13 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
         setTimeout(() => {
             loadLeads();
             statusEl.textContent = '';
-        }, 2000);
+            statusEl.className = 'form-status';
+        }, 3000);
     } catch (error) {
         console.error('Error submitting form:', error);
         const statusEl = document.getElementById('form-status');
-        statusEl.textContent = '✗ Ett fel uppstod. Försök igen.';
-        statusEl.className = 'error';
+        statusEl.textContent = '✗ Ett fel uppstod. Försök igen senare.';
+        statusEl.className = 'form-status error';
     }
 });
 
