@@ -6,8 +6,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// API Integration (backend handles OpenAI API key securely)
-const VALUATION_API = '/api/valuation';
+// API Integration (backend handles Claude API key securely)
+const VALUATION_API = '/api/valuation-claude';
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwDBzjKdl1fdmGVYHKwQuFZln5lFbgQb_I9Qlh84mG9IlUfqdfE5HPZVfJ7Zcei9RnssQ/usercallback';
 
 // Quick Valuation Variables
@@ -48,19 +48,8 @@ function setupQuickValuation() {
     }
 }
 
-// Generate consistent valuation based on property data
-function generateMockValuation(address, propertyType, kvm, floor, rooms) {
-    // Create deterministic value based on address hash
-    let hash = 0;
-    for (let i = 0; i < address.length; i++) {
-        const char = address.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    
-    // Normalize hash to 0-1 range
-    const normalized = Math.abs(hash % 100) / 100;
-    
+// Fallback valuation if Claude API fails
+function generateFallbackValuation(address, propertyType, kvm, floor, rooms) {
     const baseValues = {
         'villa': 4500000,
         'brf': 2500000
@@ -68,34 +57,25 @@ function generateMockValuation(address, propertyType, kvm, floor, rooms) {
 
     let baseValue = baseValues[propertyType] || 2500000;
     
-    // Adjust for BRF details if provided
     if (propertyType === 'brf' && kvm) {
-        // Price per sqm estimation
-        const pricePerSqm = 45000; // 45k per sqm average in Sweden
+        const pricePerSqm = 45000;
         baseValue = parseInt(kvm) * pricePerSqm;
         
-        // Adjust for floor deterministically
         if (floor) {
             const floorNum = parseInt(floor);
             if (floorNum > 5) {
-                baseValue *= 1.1; // Higher floors = higher value
+                baseValue *= 1.1;
             } else if (floorNum === 0) {
-                baseValue *= 0.95; // Ground floor discount
+                baseValue *= 0.95;
             }
         }
-    } else {
-        // Villa: add variation based on address (±5% max)
-        const variation = (normalized - 0.5) * 0.1; // ±5%
-        baseValue *= (1 + variation);
     }
     
-    // Round to nearest 50000 for clean display
     baseValue = Math.round(baseValue / 50000) * 50000;
-    
     return baseValue;
 }
 
-// Get valuation
+// Get valuation from Claude
 async function getValuation() {
     const address = document.getElementById('quick-address').value.trim();
     const getBtn = document.getElementById('get-valuation-btn');
@@ -111,13 +91,10 @@ async function getValuation() {
     }
 
     // Show loading
-    getBtn.textContent = '⏳ Analyserar...';
+    getBtn.textContent = '⏳ Claude analyserar...';
     getBtn.disabled = true;
 
     try {
-        // Simulate API delay (realistic UX)
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
         // Get BRF details if applicable
         let kvm = null, floor = null, rooms = null;
         if (selectedPropertyType === 'brf') {
@@ -126,14 +103,34 @@ async function getValuation() {
             rooms = document.getElementById('brf-rooms').value;
         }
 
-        // Generate valuation
-        const valuation = generateMockValuation(
-            address, 
-            selectedPropertyType, 
-            kvm, 
-            floor, 
-            rooms
-        );
+        // Call Claude API
+        const response = await fetch(VALUATION_API, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                address: address,
+                propertyType: selectedPropertyType,
+                kvm: kvm,
+                floor: floor,
+                rooms: rooms
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(`API error: ${error.error || response.statusText}`);
+        }
+
+        const data = await response.json();
+        let valuationStr = data.valuation.trim();
+        let valuation = parseInt(valuationStr.replace(/[^0-9]/g, ''));
+
+        if (isNaN(valuation) || valuation < 100000) {
+            // Fallback if Claude response is invalid
+            valuation = generateFallbackValuation(address, selectedPropertyType, kvm, floor, rooms);
+        }
 
         // Format
         const formatted = new Intl.NumberFormat('sv-SE', { 
@@ -146,7 +143,23 @@ async function getValuation() {
 
     } catch (error) {
         console.error('Error:', error);
-        alert('Fel vid värdering. Försök igen.');
+        // Show error but offer fallback
+        alert('Claude är tillfälligt otillgänglig. Använder uppskattning istället.');
+        
+        // Use fallback
+        let kvm = selectedPropertyType === 'brf' ? document.getElementById('brf-kvm').value : null;
+        let floor = selectedPropertyType === 'brf' ? document.getElementById('brf-floor').value : null;
+        let rooms = selectedPropertyType === 'brf' ? document.getElementById('brf-rooms').value : null;
+        
+        const fallbackValue = generateFallbackValuation(address, selectedPropertyType, kvm, floor, rooms);
+        const formatted = new Intl.NumberFormat('sv-SE', { 
+            style: 'currency', 
+            currency: 'SEK',
+            minimumFractionDigits: 0 
+        }).format(fallbackValue);
+        
+        displayValuation(address, formatted, fallbackValue);
+        
     } finally {
         getBtn.textContent = 'Få Värdering →';
         getBtn.disabled = false;
